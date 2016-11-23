@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using System.IO;
 
 namespace _6_Registry
 {
@@ -20,7 +21,10 @@ namespace _6_Registry
             comboBox1.SelectedIndex = 0;
         }
 
-        static readonly Regex binary = new Regex("^[01]{1,32}$", RegexOptions.Compiled);
+        private static readonly Regex binary = new Regex("^[01]{1,32}$", RegexOptions.Compiled);
+
+        private bool saved = true;
+        private string filepath = "";
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -85,6 +89,46 @@ namespace _6_Registry
                     textBox1.Text = textBox1.Text.Replace(textBox1.Text.Substring(textBox1.SelectionStart, textBox1.SelectionLength), result);
                 }
             }
+        }
+
+        private void Open_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Title = "Open...";
+            ofd.Filter = "Text file|*.txt";
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                filepath = ofd.FileName;
+                StreamReader sr = new StreamReader(filepath);
+                textBox1.Text = sr.ReadToEnd();
+                sr.Close();
+                this.Text = Path.GetFileName(filepath);
+                this.textBox1.Enabled = true;
+            }
+        }
+
+        private void Save_Click(object sender, EventArgs e)
+        {
+            File.WriteAllText(filepath, textBox1.Text);
+            this.Text = this.Text.Remove(this.Text.Length - 1, 1);
+        }
+
+        private void Exit_Click(object sender, EventArgs e)
+        {
+            if (saved)
+            {
+                SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+                saveFileDialog1.Title = "Save yourself";
+                saveFileDialog1.Filter = "Text file|*.txt";
+                saveFileDialog1.ShowDialog();
+            }
+            Close();
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            if (!this.Text.Contains("*"))
+                this.Text = this.Text + "*";
         }
     }
 }
