@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.IO;
+using Microsoft.Win32;
 
 namespace _6_Registry
 {
@@ -19,12 +20,47 @@ namespace _6_Registry
         {
             InitializeComponent();
             comboBox1.SelectedIndex = 0;
+
+
+
+            RegistryKey rk = null;
+            string s = "";
+            try
+            {
+                rk = Registry.CurrentUser.OpenSubKey(regkey);
+                if (rk != null)
+                {
+                    Width = (int)rk.GetValue("FormWidth", Width);
+                    Height = (int)rk.GetValue("FormHeight",  Height);
+                    s = (string)rk.GetValue("FileName");
+                    if (Directory.Exists(s))
+                    {
+                        this.Text = Path.GetFileName(s);
+                        StreamReader sr = new StreamReader(filepath);
+                        textBox1.Text = sr.ReadToEnd();
+                        sr.Close();
+                        textBox1.Enabled = true;
+                    }
+                    textBox1.SelectionStart = (int)rk.GetValue("CursorPosition");
+                    comboBox1.SelectedIndex = (int)rk.GetValue("ConvertMode");
+                    this.Location = (Point)rk.GetValue("FormLocation");
+                }
+            }
+            finally
+            {
+                if (rk != null)
+                    rk.Close();
+            }
+
+
+
         }
 
         private static readonly Regex binary = new Regex("^[01]{1,32}$", RegexOptions.Compiled);
 
         private bool saved = true;
         private string filepath = "";
+        private string regkey = "Software\\CSExamples\\reg-6";
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -129,6 +165,28 @@ namespace _6_Registry
         {
             if (!this.Text.Contains("*"))
                 this.Text = this.Text + "*";
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            RegistryKey rk = null;
+            try
+            {
+                rk = Registry.CurrentUser.CreateSubKey(regkey);
+                if (rk == null)
+                    return;
+                rk.SetValue("FileName", filepath);
+                rk.SetValue("ConvertMode", comboBox1.SelectedIndex);
+                rk.SetValue("FormHeight", this.Height);
+                rk.SetValue("FormWidth", this.Width);
+                rk.SetValue("FormLocation", this.Location);
+                rk.SetValue("CursorPosition",textBox1.SelectionStart);
+            }
+            finally
+            {
+                if (rk != null)
+                    rk.Close();
+            }
         }
     }
 }
