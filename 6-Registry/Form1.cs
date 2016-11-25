@@ -32,18 +32,21 @@ namespace _6_Registry
                 {
                     Width = (int)rk.GetValue("FormWidth", Width);
                     Height = (int)rk.GetValue("FormHeight",  Height);
-                    s = (string)rk.GetValue("FileName");
-                    if (Directory.Exists(s))
+                    filepath = (string)rk.GetValue("FileName");
+                    if (File.Exists(filepath)) //D:\User\desktop\file.txt
                     {
-                        this.Text = Path.GetFileName(s);
+                        this.Text = Path.GetFileName(filepath); 
                         StreamReader sr = new StreamReader(filepath);
                         textBox1.Text = sr.ReadToEnd();
                         sr.Close();
                         textBox1.Enabled = true;
+                        this.ActiveControl = textBox1;
+                        //textBox1.Focus();
+                        textBox1.SelectionStart = (int)rk.GetValue("CursorPosition");
                     }
-                    textBox1.SelectionStart = (int)rk.GetValue("CursorPosition");
+                    
                     comboBox1.SelectedIndex = (int)rk.GetValue("ConvertMode");
-                    this.Location = (Point)rk.GetValue("FormLocation");
+                    this.Location = new Point ((int)rk.GetValue("FormLocationX"), (int)rk.GetValue("FormLocationY"));
                 }
             }
             finally
@@ -179,7 +182,8 @@ namespace _6_Registry
                 rk.SetValue("ConvertMode", comboBox1.SelectedIndex);
                 rk.SetValue("FormHeight", this.Height);
                 rk.SetValue("FormWidth", this.Width);
-                rk.SetValue("FormLocation", this.Location);
+                rk.SetValue("FormLocationX", this.Location.X);
+                rk.SetValue("FormLocationY", this.Location.Y);
                 rk.SetValue("CursorPosition",textBox1.SelectionStart);
             }
             finally
