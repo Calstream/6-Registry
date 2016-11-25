@@ -20,11 +20,7 @@ namespace _6_Registry
         {
             InitializeComponent();
             comboBox1.SelectedIndex = 0;
-
-
-
             RegistryKey rk = null;
-            string s = "";
             try
             {
                 rk = Registry.CurrentUser.OpenSubKey(regkey);
@@ -33,7 +29,7 @@ namespace _6_Registry
                     Width = (int)rk.GetValue("FormWidth", Width);
                     Height = (int)rk.GetValue("FormHeight",  Height);
                     filepath = (string)rk.GetValue("FileName");
-                    if (File.Exists(filepath)) //D:\User\desktop\file.txt
+                    if (File.Exists(filepath))
                     {
                         this.Text = Path.GetFileName(filepath); 
                         StreamReader sr = new StreamReader(filepath);
@@ -41,13 +37,13 @@ namespace _6_Registry
                         sr.Close();
                         textBox1.Enabled = true;
                         this.ActiveControl = textBox1;
-                        //textBox1.Focus();
                         textBox1.SelectionStart = (int)rk.GetValue("CursorPosition");
                     }
                     
                     comboBox1.SelectedIndex = (int)rk.GetValue("ConvertMode");
                     this.Location = new Point ((int)rk.GetValue("FormLocationX"), (int)rk.GetValue("FormLocationY"));
                 }
+                
             }
             finally
             {
@@ -150,24 +146,47 @@ namespace _6_Registry
         {
             File.WriteAllText(filepath, textBox1.Text);
             this.Text = this.Text.Remove(this.Text.Length - 1, 1);
+            saved = true;
+        }
+
+        private void FormExit()
+        {
+            if (!saved)
+            {
+                string message = "Вы хотите сохранить изменения в файле " + filepath + "?";
+                DialogResult result = MessageBox.Show(message, "6-Registry", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
+                if (result == DialogResult.Yes)
+                {
+                    //code for Yes
+                }
+                else if (result == DialogResult.No)
+                {
+                    Close();
+                }
+                else if (result == DialogResult.Cancel)
+                {
+                    //code for Cancel
+                }
+                //SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+                //saveFileDialog1.Title = "Save";
+                //saveFileDialog1.Filter = "Text file|*.txt";
+                //saveFileDialog1.ShowDialog();
+            }
         }
 
         private void Exit_Click(object sender, EventArgs e)
         {
-            if (saved)
-            {
-                SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-                saveFileDialog1.Title = "Save yourself";
-                saveFileDialog1.Filter = "Text file|*.txt";
-                saveFileDialog1.ShowDialog();
-            }
+            FormExit();
             Close();
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
             if (!this.Text.Contains("*"))
+            {
                 this.Text = this.Text + "*";
+                saved = false;
+            }
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
@@ -191,6 +210,12 @@ namespace _6_Registry
                 if (rk != null)
                     rk.Close();
             }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            FormExit();
+            Close();
         }
     }
 }
